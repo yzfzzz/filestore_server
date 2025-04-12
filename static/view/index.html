@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件上传下载系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .upload-section, .download-section {
+            width: 48%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #444;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .file-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .file-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+        button, .download-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover, .download-btn:hover {
+            background-color: #45a049;
+        }
+        .upload-btn {
+            background-color: #2196F3;
+        }
+        .upload-btn:hover {
+            background-color: #0b7dda;
+        }
+        .delete-btn {
+            background-color: #f44336;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            width: 0%;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>文件上传下载系统</h1>
+    
+    <div class="container">
+        <div class="upload-section">
+            <h2>上传文件</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" id="fileInput" name="file" multiple>
+                <button type="submit" class="upload-btn">上传</button>
+            </form>
+            <div class="progress-container" id="progressContainer" style="display: none;">
+                <div class="progress-bar" id="progressBar">0%</div>
+            </div>
+            <div class="status" id="uploadStatus"></div>
+        </div>
+        
+        <div class="download-section">
+            <h2>下载文件</h2>
+            <div id="fileList">
+                <p>正在加载文件列表...</p>
+                <!-- 文件列表将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟文件列表数据 - 实际应用中应从服务器获取
+        const files = [
+            { name: "文档示例.pdf", size: "2.4 MB", date: "2023-05-15" },
+            { name: "图片示例.jpg", size: "1.8 MB", date: "2023-05-10" },
+            { name: "表格示例.xlsx", size: "3.1 MB", date: "2023-05-05" }
+        ];
+
+        // 页面加载时显示文件列表
+        document.addEventListener('DOMContentLoaded', function() {
+            renderFileList();
+        });
+
+        // 渲染文件列表
+        function renderFileList() {
+            const fileListContainer = document.getElementById('fileList');
+            
+            if (files.length === 0) {
+                fileListContainer.innerHTML = '<p>没有可用的文件</p>';
+                return;
+            }
+            
+            let html = '<ul class="file-list">';
+            files.forEach(file => {
+                html += `
+                    <li>
+                        <div>
+                            <strong>${file.name}</strong><br>
+                            <small>大小: ${file.size} | 上传日期: ${file.date}</small>
+                        </div>
+                        <div>
+                            <a href="#" class="download-btn" data-file="${file.name}">下载</a>
+                            <button class="delete-btn" data-file="${file.name}">删除</button>
+                        </div>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            
+            fileListContainer.innerHTML = html;
+            
+            // 添加下载按钮事件
+            document.querySelectorAll('.download-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const fileName = this.getAttribute('data-file');
+                    downloadFile(fileName);
+                });
+            });
+            
+            // 添加删除按钮事件
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const fileName = this.getAttribute('data-file');
+                    if (confirm(`确定要删除文件 "${fileName}" 吗？`)) {
+                        deleteFile(fileName);
+                    }
+                });
+            });
+        }
+
+        // 模拟文件下载
+        function downloadFile(fileName) {
+            alert(`开始下载: ${fileName}\n\n(这是一个模拟操作，实际应用中会从服务器下载文件)`);
+            // 实际应用中这里应该是一个指向服务器下载端点的链接
+            // window.location.href = `/download?file=${encodeURIComponent(fileName)}`;
+        }
+
+        // 模拟文件删除
+        function deleteFile(fileName) {
+            alert(`文件 "${fileName}" 已删除\n\n(这是一个模拟操作，实际应用中会向服务器发送删除请求)`);
+            // 实际应用中这里应该向服务器发送删除请求
+            // fetch(`/delete?file=${encodeURIComponent(fileName)}`, { method: 'DELETE' })
+            // .then(response => response.json())
+            // .then(data => {
+            //     if (data.success) {
+            //         renderFileList(); // 重新渲染文件列表
+            //     }
+            // });
+        }
+
+        // 处理文件上传
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('fileInput');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const uploadStatus = document.getElementById('uploadStatus');
+        
+        if (fileInput.files.length === 0) {
+            uploadStatus.textContent = '请选择至少一个文件';
+            return;
+        }
+        
+        // 显示进度条
+        progressContainer.style.display = 'block';
+        uploadStatus.textContent = '正在上传文件...';
+        
+        const formData = new FormData(this);
+        
+        // 使用 XMLHttpRequest 替代 fetch 以便获取上传进度
+        const xhr = new XMLHttpRequest();
+        
+        // 进度事件
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = percent + '%';
+                progressBar.textContent = percent + '%';
+                
+                if (percent === 100) {
+                    uploadStatus.textContent = '文件上传完成，正在处理...';
+                }
+            }
+        });
+        
+        xhr.addEventListener('load', function() {
+            if (xhr.status === 200) {
+                // const response = JSON.parse(xhr.responseText);
+                uploadStatus.textContent = '文件上传成功！';
+                
+                // 更新文件列表
+                // renderFileList();
+                
+                // 2秒后隐藏进度条
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 2000);
+            } else {
+                uploadStatus.textContent = '上传失败: ' + xhr.statusText;
+                progressBar.style.backgroundColor = '#f44336';
+            }
+        });
+        
+        xhr.addEventListener('error', function() {
+            uploadStatus.textContent = '上传过程中发生错误';
+            progressBar.style.backgroundColor = '#f44336';
+        });
+        
+        xhr.open('POST', '/file/upload');
+        xhr.send(formData);
+    });
+    </script>
+</body>
+</html>
