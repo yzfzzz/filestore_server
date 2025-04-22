@@ -56,7 +56,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		newFile.Seek(0,0)
 		fileMeta.FileSha1 = util.FileSha1(newFile)
-		meta.UpdateFileMeta(fileMeta)
+		// meta.UpdateFileMeta(fileMeta)
+		_ = meta.UpdateFileMetaDB(fileMeta)
 
 		// 如果程序无动作， go 处理完 http 会自动返回 200
 		// http.Redirect(w, r, "/file/upload/suc", http.StatusFound)
@@ -74,7 +75,12 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	// 输入网址: http://124.223.141.236:8080/file/meta?filehash=04bad22b7045d31e34d1ca46cb03bbfcfd9d9fdc
 	filehash := r.Form["filehash"][0]
-	fMeta := meta.GetFileMeta(filehash)
+	// fMeta := meta.GetFileMeta(filehash)
+	fMeta, err := meta.GetFileMetaDB(filehash)
+	if(err != nil){
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	data, err := json.Marshal(fMeta)
 	if(err != nil){
 		w.WriteHeader(http.StatusInternalServerError)
