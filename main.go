@@ -19,6 +19,8 @@ func main() {
 	http.HandleFunc("/file/delete", handler.FileDeleteHandler)
 	http.HandleFunc("/user/signup", handler.SignupHandler)
 	http.HandleFunc("/user/signin", handler.SignInHandler)
+	http.HandleFunc("/file/query", handler.FileQueryHandler)
+	http.HandleFunc("/file/fastupload", handler.TryFastUploadHandler)
 	// TODO: 在路由处加入拦截器
 	http.HandleFunc("/user/info", handler.UserinfoHandler)
 	err := http.ListenAndServe(":8080", nil)
