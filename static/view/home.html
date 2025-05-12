@@ -68,8 +68,8 @@
   window.onload = function () {
     var username = document.getElementById('username');
     $.ajax({
-      // url: "/user/info?" + queryParams(),
-      url: "/user/info",
+      url: "/user/info?" + queryParams(),
+      // url: "/user/info",
       type: "POST",
       error: function (jqXHR, textStatus, errorThrown) {
         if (textStatus == "error") {
