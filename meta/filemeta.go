@@ -53,3 +53,7 @@ func GetFileMetaDB(fileSha1 string) (FileMeta, error){
 func RemoveFileMeta(fileSha1 string){
 	delete(fileMetas, fileSha1)
 }
+
+func IsEmpty(f *FileMeta) bool {
+    return f.FileName == "" && f.FileSize == 0 && f.FileSha1  == ""
+}
