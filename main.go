@@ -8,9 +8,7 @@ import (
 func main() {
 	// 静态资源处理
 	// http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(assets.AssetFS())))
-	http.Handle("/static/",
-		http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
-
+	http.Handle("/static/",http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	http.HandleFunc("/file/upload", handler.UploadHandler)
 	http.HandleFunc("/file/upload/suc", handler.UploadSucHandler)
 	http.HandleFunc("/file/meta",handler.GetFileMetaHandler)
@@ -21,6 +19,9 @@ func main() {
 	http.HandleFunc("/user/signin", handler.SignInHandler)
 	http.HandleFunc("/file/query", handler.FileQueryHandler)
 	http.HandleFunc("/file/fastupload", handler.TryFastUploadHandler)
+	http.HandleFunc("/file/mpupload", handler.InitialMutipartUploadHandler)
+	http.HandleFunc("/file/mpupload/uppart", handler.UploadPartHandler)
+	http.HandleFunc("/file/mpupload/complete", handler.CompleteUploadHandler)
 	// TODO: 在路由处加入拦截器
 	http.HandleFunc("/user/info", handler.UserinfoHandler)
 	err := http.ListenAndServe(":8080", nil)
