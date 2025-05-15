@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	dblayer "filestore_server/db"
 	"filestore_server/meta"
+	oss "filestore_server/store"
 	"filestore_server/util"
 	"os"
 	"time"
@@ -57,6 +58,19 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		newFile.Seek(0,0)
 		fileMeta.FileSha1 = util.FileSha1(newFile)
+
+		// 写入阿里云oss存储
+		newFile.Seek(0,0)
+		
+		ossPath := "oss/" + fileMeta.FileSha1
+		err = oss.Bucket().PutObject(ossPath, newFile)
+		if(err != nil){
+			fmt.Printf("Failed to upload data into OSS, err:%s\n", err.Error())
+			w.Write([]byte("Failed to upload data into OSS"))
+			return
+		}
+		fileMeta.Location = ossPath
+
 		// meta.UpdateFileMeta(fileMeta)
 		_ = meta.UpdateFileMetaDB(fileMeta)
 
@@ -233,5 +247,23 @@ func TryFastUploadHandler(w http.ResponseWriter, r *http.Request){
 		}
 		w.Write(resp.JSONBytes())
 		return
+	}
+}
+
+func DownloadURLHandler(w http.ResponseWriter, r *http.Request){
+	r.ParseForm()
+	filehash := r.Form.Get("filehash")
+	// 从文件表查找记录
+	row, err := dblayer.GetFileMeta(filehash)
+	if(err != nil){
+		w.Write(util.NewRespMsg(-1, "failed", nil).JSONBytes())
+		return
+	}
+	// 
+	if(row.FileAddr.Valid){
+		signedURL := oss.DownloadURL(row.FileAddr.String)
+		w.Write([]byte(signedURL))
+	}else{
+		w.Write([]byte("Not Found File Addr"))
 	}
 }
