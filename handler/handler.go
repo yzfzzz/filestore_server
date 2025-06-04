@@ -3,13 +3,17 @@ package handler
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
 	// 1.16之后，ioutil被弃用，改为os
 	"encoding/json"
+	cmn "filestore_server/common"
+	cfg "filestore_server/config"
 	dblayer "filestore_server/db"
 	"filestore_server/meta"
+	mq "filestore_server/mq"
 	oss "filestore_server/store"
 	"filestore_server/util"
 	"os"
@@ -63,13 +67,35 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		newFile.Seek(0,0)
 		
 		ossPath := "oss/" + fileMeta.FileSha1
-		err = oss.Bucket().PutObject(ossPath, newFile)
-		if(err != nil){
-			fmt.Printf("Failed to upload data into OSS, err:%s\n", err.Error())
-			w.Write([]byte("Failed to upload data into OSS"))
-			return
+		// 判断同步还是异步
+		if !cfg.AsyncTransferEnable{
+			err = oss.Bucket().PutObject(ossPath, newFile)
+			if(err != nil){
+				fmt.Printf("Failed to upload data into OSS, err:%s\n", err.Error())
+				w.Write([]byte("Failed to upload data into OSS"))
+				return
+			}
+			fileMeta.Location = ossPath
+		}else{
+			
+			data := mq.TransferData{
+				FileHash: fileMeta.FileSha1,
+				CurLocation: fileMeta.Location,
+				DestLocation: ossPath,
+				DestStoreType: cmn.StoreOSS,
+			}
+
+			pubData, _ := json.Marshal(data)
+			pubSuc := mq.Publish(
+				cfg.TransExchangeName,
+				cfg.TransOSSRoutingKey,
+				pubData,
+			)
+			if !pubSuc{
+				// 发送消息失败
+				log.Println("send msg error!")
+			}
 		}
-		fileMeta.Location = ossPath
 
 		// meta.UpdateFileMeta(fileMeta)
 		_ = meta.UpdateFileMetaDB(fileMeta)

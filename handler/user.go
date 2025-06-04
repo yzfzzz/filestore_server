@@ -1,12 +1,13 @@
 package handler
 
-import(
+import (
+	dblayer "filestore_server/db"
+	"filestore_server/util"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
-	"fmt"
-	"filestore_server/util"
-	dblayer "filestore_server/db"
 )
 
 const(
@@ -18,6 +19,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	if(r.Method == http.MethodGet){
 		data, err := os.ReadFile("./static/view/signup.html")
 		if(err != nil){
+			log.Println("读取signup.html文件失败")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -29,7 +31,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	passwd := r.Form.Get("password")
 
 	if(len(username) < 3 || len(passwd) < 5){
-		w.Write([]byte("Invalid parameter"))
+		w.Write([]byte("Invalid parameter, username or password too short"))
 		return
 	}
 
@@ -45,6 +47,17 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 
 // 登录接口
 func SignInHandler(w http.ResponseWriter, r *http.Request){
+	log.Println("读取signin.html文件成功")
+	if(r.Method == http.MethodGet){
+		data, err := os.ReadFile("./static/view/signin.html")
+		if(err != nil){
+			log.Println("读取signin.html文件失败")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Write(data)
+		return
+	}
 	r.ParseForm()
 	username := r.Form.Get("username")
 	password := r.Form.Get("password")
