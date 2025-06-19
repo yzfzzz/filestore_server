@@ -1,3 +1,5 @@
 tmp
 docker/mysql/3306/data
 docker/mysql/3310/data
+docker/rabbitmq/data
+config
