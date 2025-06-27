@@ -92,6 +92,7 @@ func DoSigninHandler(c *gin.Context) {
 			Token:    token,
 		},
 	}
+	// c.Data会自动将结构体转成Json格式
 	c.Data(http.StatusOK, "application/json", resp.JSONBytes())
 }
 

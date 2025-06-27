@@ -20,7 +20,8 @@ func Router() *gin.Engine {
 	router.POST("/file/meta",handler.GetFileMetaHandler)
 	// 下载接口返回的data可能有问题
 	router.POST("/file/download",handler.DownloadHandler)
-	router.POST("/file/upload",handler.UploadHandler)
+	router.GET("/file/upload",handler.UploadHandler)
+	router.POST("/file/upload",handler.DoUploadHandler)
 	router.POST("/file/upload/suc",handler.UploadSucHandler)
 	router.POST("/file/update",handler.FileMetaUpdateHandler)
 	router.POST("/file/delete", handler.FileDeleteHandler)

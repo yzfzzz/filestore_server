@@ -25,7 +25,7 @@ import (
 // 处理文件上传服务
 func UploadHandler(c *gin.Context) {
 	// Handle file upload
-	c.Redirect(http.StatusOK, "/static/view/index.html")
+	c.Redirect(http.StatusFound, "/static/view/index.html")
 }
 
 func DoUploadHandler(c *gin.Context) {
