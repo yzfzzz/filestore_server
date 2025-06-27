@@ -13,19 +13,24 @@ func Router() *gin.Engine {
 	router.Static("/static", "./static")
 	router.GET("/user/signup", handler.SignupHandler)
 	router.POST("/user/signup", handler.DoSignupHandler)
-	router.GET("/user/signup", handler.SigninHandler)
-	router.POST("/user/signup", handler.DoSigninHandler)
+	router.GET("/user/signin", handler.SigninHandler)
+	router.POST("/user/signin", handler.DoSigninHandler)
 
 	router.POST("/user/info", handler.UserinfoHandler)
 	router.POST("/file/meta",handler.GetFileMetaHandler)
 	// 下载接口返回的data可能有问题
 	router.POST("/file/download",handler.DownloadHandler)
-	
+	router.POST("/file/upload",handler.UploadHandler)
+	router.POST("/file/upload/suc",handler.UploadSucHandler)
+	router.POST("/file/update",handler.FileMetaUpdateHandler)
+	router.POST("/file/delete", handler.FileDeleteHandler)
+	router.POST("/file/query", handler.FileQueryHandler)
+	router.POST("/file/downloadurl", handler.DownloadURLHandler)
 
 	// 加入中间件, 用于校验token的拦截器
 
 
 	// 这行代码之后的所有handler都会被这个中间件拦截
 
-
+	return router
 }

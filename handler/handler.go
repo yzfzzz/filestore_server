@@ -119,8 +119,10 @@ func DoUploadHandler(c *gin.Context) {
 }
 
 // 上传成功的信息
-func UploadSucHandler(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Upload success!")
+func UploadSucHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "Upload success!",
+	})
 }
 
 // 获取文件元信息
@@ -148,24 +150,28 @@ func GetFileMetaHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "application/json", data)
 }
 
-func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-
-	limitCnt, _ := strconv.Atoi(r.Form.Get("limit"))
-	username := r.Form.Get("username")
+func FileQueryHandler(c *gin.Context) {
+	limitCnt, _ := strconv.Atoi(c.Request.FormValue("limit"))
+	username := c.Request.FormValue("username")
 
 	userFiles, err := dblayer.QueryUserFileMetas(username, limitCnt)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":  "Failed to query user file metas",
+			"code": -1,
+		})
 		return
 	}
 
 	data, err := json.Marshal(userFiles)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "Failed to json",
+			"code": -2,
+		})
 		return
 	}
-	w.Write(data)
+	c.Data(http.StatusOK, "application/json", data)
 }
 
 // 文件下载接口
@@ -198,23 +204,23 @@ func DownloadHandler(c *gin.Context) {
 }
 
 // 文件重命名
-func FileMetaUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+func FileMetaUpdateHandler(c *gin.Context) {
+	
 
-	opType := r.Form.Get("op")
-	fileSha1 := r.Form.Get("filehash")
-	newFileName := r.Form.Get("filename")
+	opType := c.Request.FormValue("op")
+	fileSha1 := c.Request.FormValue("filehash")
+	newFileName := c.Request.FormValue("filename")
 
 	// fmt.Printf("method: %s, op: %s, filehash: %s, filename: %s\n", r.Method, opType,fileSha1,newFileName)
 
 	if opType != "0" {
-		w.WriteHeader(http.StatusForbidden)
+		c.JSON(http.StatusForbidden, gin.H{
+			"msg":  "Forbidden",
+			"code": -1,
+		})
 		return
 	}
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
+
 
 	curFileMeta := meta.GetFileMeta(fileSha1)
 	curFileMeta.FileName = newFileName
@@ -223,23 +229,26 @@ func FileMetaUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(curFileMeta)
 
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":  "Failed to json",
+			"code": -2,
+		})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	c.Data(http.StatusOK, "application/json", data)
 }
 
 // 删除文件及其元信息
-func FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	fileSha1 := r.Form.Get("filehash")
+func FileDeleteHandler(c *gin.Context) {
+	fileSha1 := c.Request.FormValue("filehash")
 	fMeta := meta.GetFileMeta(fileSha1)
 	os.Remove(fMeta.Location)
 	meta.RemoveFileMeta(fileSha1)
 
-	w.WriteHeader(http.StatusOK)
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "Delete success!",
+	})
 }
 
 // 尝试秒传接口
@@ -289,20 +298,25 @@ func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func DownloadURLHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	filehash := r.Form.Get("filehash")
+func DownloadURLHandler(c *gin.Context) {
+	filehash := c.Request.FormValue("filehash")
 	// 从文件表查找记录
 	row, err := dblayer.GetFileMeta(filehash)
 	if err != nil {
-		w.Write(util.NewRespMsg(-1, "failed", nil).JSONBytes())
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "Failed to get file meta data",
+			"code": -1,
+		})
 		return
 	}
 	//
 	if row.FileAddr.Valid {
 		signedURL := oss.DownloadURL(row.FileAddr.String)
-		w.Write([]byte(signedURL))
+		c.Data(http.StatusOK, "text/plain", []byte(signedURL))
 	} else {
-		w.Write([]byte("Not Found File Addr"))
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg":  "Failed to get file download url",
+			"code": -2,
+		})
 	}
 }
