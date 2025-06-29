@@ -79,7 +79,8 @@
         }
       },
       success: function (body, textStatus, jqXHR) {
-        var resp = JSON.parse(body);
+        // var resp = JSON.parse(body);
+        var resp = body;
         document.getElementById("username").innerHTML = resp.data.Username;
         document.getElementById("regtime").innerHTML = resp.data.SignupAt;
         updateFileList();
@@ -105,7 +106,8 @@
         if (!body) {
           return;
         }
-        var data = JSON.parse(body);
+        // var data = JSON.parse(body);
+        var data = body;
         if (!data || data.length <= 0) {
           return;
         }
