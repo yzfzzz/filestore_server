@@ -25,7 +25,8 @@ import (
 // 处理文件上传服务
 func UploadHandler(c *gin.Context) {
 	// Handle file upload
-	c.Redirect(http.StatusFound, "/static/view/index.html")
+	// c.Redirect(http.StatusFound, "/static/view/index.html")
+	c.File("./static/view/index.html");
 }
 
 func DoUploadHandler(c *gin.Context) {
@@ -105,7 +106,7 @@ func DoUploadHandler(c *gin.Context) {
 
 	suc := dblayer.OnUserFileUploadFinished(username, fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize)
 	if suc == true {
-		c.Redirect(http.StatusOK, "/static/view/home.html")
+		c.Redirect(http.StatusMovedPermanently, "/static/view/home.html")
 	} else {
 		c.JSON(http.StatusOK, gin.H{
 			"msg":  "Upload failed!",
